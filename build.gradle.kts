@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.8.0"
+    application
 }
 
 group = "org.example"
@@ -11,6 +12,10 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+}
+
+application {
+    mainClass.set("com.example.MainKt")
 }
 
 tasks.test {

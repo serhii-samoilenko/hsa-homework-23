@@ -1,51 +1,83 @@
-# Highload Software Architecture 8 Lesson 19 Homework
+# Highload Software Architecture 8 Lesson 23 Homework
 
-Data Structures and Algorithms
+Profiling
 ---
 
 ## Test project setup
 
-The demo is written in Kotlin and contains custom implementation of the Tree and Sorting algorithms.
+The project reuses the code from the [Lesson 19 Homework](https://github.com/serhii-samoilenko/hsa-homework-19) and adds profiling.
 
-The `com.example.DemoKt.runDemo` function is used to run benchmarks for the algorithms.
-
-The summary of the results is located in the [REPORT.md](reports/REPORT.md) file.
-
-### Tree implementation
-
-The tree implementation is located in the [AaTree.kt](src/main/kotlin/com/example/AaTree.kt) file.
-
-This is a simplified version of the Black-Red tree that uses levels instead of colors and only two balancing operations.
-
-Additional information on the Wikipedia page: [AA Tree](https://en.wikipedia.org/wiki/AA_tree)
-
-### Sorting algorithm
-
-The sorting algorithm is located in the [CountingSort.kt](src/main/kotlin/com/example/CountingSort.kt) file.
-
-### Datasets
-
-The test datasets generator functions are located in the [DataSets.kt](src/main/kotlin/com/example/Datasets.kt) file.
-
-Various datasets are used to test the Tree implementation, and to test the Sorting algorithm only the Random dataset is used.
+The program executes inserts of various datasets into the Tree. External profiler is used to measure the performance.
 
 ## How to build and run
 
 Build and run demo application (Requires Java 11+)
 
 ```shell script
-./gradlew build && \
-java -jar build/libs/hsa19-1.0-SNAPSHOT.jar
+./gradlew run
 ```
 
-## Results and Conclusions
+Attach profiler to the running application and press Enter to start the load test.
 
-The [REPORT.md](reports/REPORT.md) contains tables with the results of the benchmarks. Charts can be found in the [Spreadsheet](https://docs.google.com/spreadsheets/d/13pbKhG1CDDi8sM9jNHGe-5fmxqrJU_c935q5E8210K0/edit?usp=sharing).
+There will be a 5-second pause between the test runs.
 
-### AA Tree
+## Results
 
-The AA Tree shows logarithmic complexity for all datasets, with worst case performance for the Random dataset.
+Since there is no suitable Input-sensitive profiler for Java, I used the standard profiler built into the IntelliJ IDEA.
 
-### Counting Sort
+I used distinct function names for the datasets to make it easier to distinguish them in the profiler results:
 
-The Counting Sort appears to be very fast for datasets with small spread (range of values), but its performance degrades quickly as the range of values increases.
+```kotlin
+insert_512K()
+insert_1024K()
+insert_2048K()
+insert_4096K()
+insert_8192K()
+```
+
+### CPU Sampling results
+
+![dashboards](report/flamegraph-cpu.png "Flamegraph")
+
+This flamegraph shows time spent in the each `insert_*` function.
+
+Numerical values are, % of time:
+
+```
+~ 95.8% com.example.MainKt.main(String[])
+58.8% com.example.MainKt.insert_8192K()
+25.5% com.example. MainKt.insert_4096K()
+9.0% com.example.MainKt.insert_2048K()
+4.9% com.example.MainKt.insert_1024K()
+1.9% com.example.MainKt.insert_512K()
+```
+
+In a form of a chart:
+
+![chart](report/chart-time.png "Chart")
+
+This confirms that the time spent in the `insert_*` functions is logarithmically proportional to the size of the dataset.
+
+### Memory Allocation results
+
+![dashboards](report/flamegraph-mem.png "Flamegraph")
+
+This flamegraph shows memory allocations in the each `insert_*` function.
+
+We also can see memory allocations of the same size when the dataset is allocated before being inserted into the Tree.
+
+Numerical values are, KiB:
+
+```
+963_610K com.example. MainKt.insert_8192K()
+474_797K com.example.MainKt.insert_4096K()
+245_942K com.example.MainKt.insert_2048K()
+120_937K com.example.MainKt.insert_1024K()
+634_87K com.example.MainKt.insert_512K()
+```
+
+In a form of a chart:
+
+![chart](report/chart-mem.png "Chart")
+
+This confirms that the memory allocations in the `insert_*` functions are linearly proportional to the size of the dataset.
