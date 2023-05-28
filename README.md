@@ -7,6 +7,8 @@ Profiling
 
 The project reuses the code from the [Lesson 19 Homework](https://github.com/serhii-samoilenko/hsa-homework-19) and adds profiling.
 
+I already used built-in profiling in this project, but this time I'll use external profiler.
+
 The program executes inserts of various datasets into the Tree. External profiler is used to measure the performance.
 
 ## How to build and run
